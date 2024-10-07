@@ -1,0 +1,1188 @@
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
+COMP 7003
+Assignment 1
+
+Detailed Analysis of NotPetya Malware 
+
+
+
+Aditya Singh Attri	
+A01276335
+September 20th, 2024
+
+
+
+
+Executive Summary
+This analysis provides an in-depth analysis and review of NotPetya. It discusses its previous, more controllable version, Petya and how it worked as a ransomware. It mentions the technological and malicious changes from that version to the current topic of this analysis, NotPetya. 
+It highlights its origins, the different methods through which it spread, the nature of the malware and the anti-forensic practices it followed.
+The analysis then covers the impact of the malware on the global scale and the organisations affected by it, as well as the losses they incurred. 
+Finally, we discuss the steps to adhere to in order to avoid a similar ransomware attack, and end with the conclusion of this whole situation on the global front, with a letter of warning against such unavoidable, future incidents.
+Introduction
+Petya is a ransomware that was first discovered in 2016. It would encrypt the users’ entire hard disk, unlike the other ransomwares. The criminals who spread the virus would then extort payment in Bitcoin before decrypting the files and making them usable again. [3]
+Similar to other ransomwares, it would spread mostly through email attachments to corporate HR departments via a fake application that contained an infected Dropbox link or executable files in disguise. [3, 4]
+In June 2017, a new type of ransomware that resembled Petya in many aspects infected organizations around the world. Due to its similarities to Petya, except a handful of crucial differences, it was labeled, “NotPetya” by the security vendor Kaspersky. [3]
+One of the major differences which made NotPetya much more contagious than its previous counterpart was that it spread on its own. While the original needed the victim to download it from a spam email, launch it and give it administrative permissions, NotPetya used several different methods to spread without human intervention. [5]
+Most common methods used were: [6]
+-	Stealing credentials or re-using active sessions
+-	Using file-share to transfer malicious files across the same network
+-	Using existing legal functionalities to execute the payload 
+NotPetya also went further than the original Petya of encrypting the MFT, by going after a number of other files to completely mess up the hard drive. [5]
+The final key difference was that NotPetya was not a ransomware. Even though it showed the message of sending the money to a specified Bitcoin wallet to decrypt the files, the Bitcoin address was a fake, randomly generated one. NotPetya would just damage the data beyond repair in the process of encrypting it. [5]
+While the 2016 Petya attack was attributed to usual ransomware cyber-criminals, the NotPetya was announced to be the handiwork of the Russian government by several nations in 2018. The White House called it the “the most destructive and costly cyber-attack in history.” [3,7]
+Body
+Historical Background
+Petya is a family of encrypting malware that was first discovered in March 2016. It was a part of illegal software engineering which extorted victims to pay for a key to unlock their own files. [1] Unlike older ransomware variants, which would encrypt only certain important files, Petya would lock up a computer’s entire hard disk by encrypting its Master File Table (MFT), which is used by disk partitions to hold information about file names, sizes and location on the physical disk. [2, 3]
+Another variant of Petya was recorded in May 2016, which could install a second file-encrypting program if it was not able to get administrator privileges required to encrypt the MFT. In previous versions, if Petya failed to obtain administrator privileges, the ransomware would stop functioning.  However, in this new variant, it would install another ransomware, dubbed Mischa, which would encrypt users’ file directly without admin access. [2]
+NotPetya could superficially be traced to its origin, a small, family-run Ukrainian software business in Kiev. The firm served businesses of all sizes across Ukraine with software such as M.E.Doc (or MeDoc), basically Ukraine’s “TurboTax” that is used by almost every Ukrainian business or tax filer. The Kremlin-linked elite hacking group Sandworm targeted the family-owned software business as part of an ongoing Russo-Ukrainian war. Sandworm is said to have installed a backdoor into the business’s servers, from which they deployed MeDoc software containing NotPetya — everywhere. (The Ukraine branch of Maersk had MeDoc installed on just one machine.) [11]
+
+Technical Analysis
+On 27th June, 2017, the major global cyberattack called NotPetya began infecting organizations around the world. It had impacted at least 2000 organizations by June 28th, 2017, with most of the victims located in Ukraine rest in other parts of Europe. [3]
+It would encrypt the entire hard disk itself, instead of the MFT like Petya. It spread exponentially by infecting entire networks using various vulnerability exploits and credential theft methods. [3]
+NotPetya combined ransomware along with the technique of self-propagation across a network. It spread to Microsoft Windows machines using several propagation methods, including the EternalBlue exploit for the CVE-2017-0144 vulnerability in the SMB (Server Message Block) service. It was the same vulnerability used in the WannaCry ransomware outbreak just months before. [8]
+To add context, the SMB protocol helps various nodes on a network communicate, and an unpatched version of Microsoft’s implementation could be tricked by specially crafted packets into executing an arbitrary code, an exploit called as EternalBlue.  This exploit was believed to have been developed by the U.S. NSA (National Security Agency). [9]
+It used the following methods to spread across a network: [8]
+1.	Network Node Enumeration: The malware attempts to gather a list of known TCP endpoints and IP addresses to check whether it can connect to the IPs via SMB ports 445 and 139.
+2.	SMB Copy and Remote Execution: There are two approaches to using valid credentials to copy and execute the malware to a remote host:
+a.	Token Impersonation: Requires the process to have “SeTchPrivilege”, which means to act as part of an operating system. [10]
+b.	Stolen credentials
+Each of these methods will be used to write to Admin$ and then execute the malware on the target machine.
+3.	SMBv1 Exploitation using EternalBlue: NotPetya has the capability to exploit SMBv1 via the well-known EternalBlue exploit. Once the exploit is launched, the shellcode will end up writing the file and executing the malware on the target machine.
+The malware also uses anti-forensics practices during its execution. For example, immediately after execution, it loads itself in memory, and deletes itself from the disk. However, before deletion, it zeroes out the file contents on disk to ensure that the malware cannot be recovered via disk forensics. [8]
+The malware uses a similar approach for the credential theft module it drops as well. Once the contents of its resource section are decompressed and written to disk, it zeroes out the memory buffer containing the decompressed PE files. [8]
+Furthermore, once execution of those files take place, it zeroes out its file contents before deleting from the disk. The malware also spawns cmd.exe to execute commands to clear out the following logs: [8]
+o	Setup logs: contains events related to application setup
+o	System logs: contains events pertaining to system components
+o	Security logs: contains events such as logon attempts, file creation, access, deletion
+o	Application logs: contains events logged by applications
+o	USN journal: maintains a record of changes made to a particular volume
+
+Impact
+As NotPetya infiltrated Ukraine and began to spread, its footprint grew so far and so quickly that it likely shocked its creators. A former Homeland Security cybersecurity expert, Tom Bossert, stated the damage totaled 10 billion US dollars. Arriving at the $10 billion total of (acknowledged) NotPetya losses is easy considering large, multinational enterprises suffered staggering losses as the malware paralyzed their operations. Here’s a list of the approximate damages reported by some of the worm’s biggest victims: [1, 11]
+-	$870 million lost to pharmaceutical giant Merck,
+-	$188 million to Mondelēz (parent company of Nabisco and Cadbury),
+-	$400 million to FedEx’s European subsidiary TNT Express,
+-	$384 million to French construction company Saint-Gobain,
+-	$300 million to Danish shipping company Maersk,
+-	$129 million to British manufacturer Reckitt Benckiser (owner of Lysol and Durex).
+Put in perspective, the WannaCry ransomware attack a month prior to NotPetya is estimated to have cost $4 billion to $8 billion. [11]
+NetPetya’s real-world damage and disruption was far-reaching. The global shipping giant Maersk – which handles one-fifth of the world’s shipping – faced a total shutdown due to the disruption caused by the malware. Instantly and simultaneously, every internet-connected device of theirs was infiltrated which included 45,000 workstations, 4,000 servers, routers, VoIP phones, physical access settings, and other infrastructure. In all, it took 200 Maersk personnel and 400 of their Deloitte contractor counterparts 10 days, working 24/7, to rebuild the Maersk network. Months more were needed to bring about normal software functionality. [11]
+NotPetya forced the personnel of the Chernobyl nuclear power plant to manually check the radiation level there, after they were locked out of their Windows computers. [4]
+
+Preventive Measures
+These steps can help make a Petya or NotPetya attack far less likely: [3, 12]
+•	Strengthening email security practices: Most Petya attacks, and some NotPetya attacks, started with an infected email attachment. To prevent this, organizations can scan emails for malware, block email attachments from external sources, and train users to avoid opening untrusted attachments.
+•	Regularly patching vulnerabilities: The EternalBlue exploit used by NotPetya had an available patch months before the attacks took place. Ransomware attacks in general often exploit software vulnerabilities to either enter a network or move laterally within it. Updating software and patching vulnerabilities can help eliminate these attack vectors.
+•	Backing up files and data: Keeping backup copies of important files does not prevent ransomware infections, but it does help an organization recover more quickly from one. In the case of an attack that wipes out files like NotPetya, this may in fact be the only way to get the files back.
+•	Keep internal email secure: A critical ransomware prevention tool is email security. There are a variety of methods that ransomware attacks use to compromise devices and networks, but email is still one of the most used. Many ransomware attacks start with a phishing attack, a spear phishing attack, or a trojan hidden inside a malicious email attachment.
+•	Use a Zero Trust model: Many organizations think of their networks like a castle surrounded by a moat. Defensive measures that guard the network perimeter, such as firewalls and intrusion prevention systems (IPS), keep attackers out. However, organizations that take this castle-and-moat approach to security are highly vulnerable to ransomware attacks. The fact is, attackers regularly are able to breach the "moat" through a variety of methods, and once they are inside, they practically have free rein to infect and encrypt the entire network.
+A better approach to network security is to assume there are threats both inside and outside the "castle." This philosophy is called Zero Trust.
+Zero Trust security models maintain strict access controls and do not trust any person or machine by default, even users and devices inside the network perimeter. Because Zero Trust continuously monitors and regularly re-authenticates both users and devices, it can prevent ransomware attacks from spreading by revoking network and application access as soon as an infection is detected. Zero Trust also follows a principle of "least privilege" for access control, making it difficult for ransomware to escalate its privileges and gain control over a network.
+
+Conclusion
+After studying and researching about NotPetya and other types of ransomwares, one thing is clear that it could happen again or even reoccur on a larger scale. Global corporations are simply too interconnected, information security is too complex and attack surfaces too broad to protect against state-trained hackers. [1]
+Russia, meanwhile, hardly seems to have been chastened by the US government’s sanctions for NotPetya, which arrived a full eight months after the worm hit and whose punishments were muddled with other messages chastising Russia for everything from 2016 election disinformation to hacker probes of the US power grid. [1]
+The scale of the damage done to multinational corporations down to an everyday person’s life highlights the need for organizations and governments to adopt robust security measures and remain ever vigilant, continuously adapting their defenses to mitigate the risk of future, potentially even more devastating, attacks.
+
+References
+1.	Greenberg, Andy (22 Aug 2018). "The Untold Story of NotPetya, the Most Devastating Cyberattack in History".
+2.	Constantin, Lucian (13 May 2016). "Petya ransomware is now double the trouble".
+3.	Cloudflare (n.d.). "What are Petya and NotPetya?".
+4.	Kaspersky (n.d.). "Ransomware Attacks and Types – How Encryption Trojans Differ".
+5.	Fruhlinger, Josh (17 Oct 2017).  "Petya ransomware and NotPetya malware: What you need to know now".
+6.	Smith (28 Jun 2017). "NotPetya ransomware hits hospitals, while Shadow Brokers touts its July VIP service".
+7.	Kovacs, Eduard (16 Feb 2018). "U.S., Canada, Australia Attribute NotPetya Attack to Russia".
+8.	Sood et al. (29 Jun 2017). "NotPetya Technical Analysis – A Triple Threat: File Encryption, MFT Encryption, Credential Theft".
+9.	Fruhlinger, Josh (24 Aug 2022). "WannaCry explained: A perfect ransomware storm"
+10.	Tenouk (n.d.). "MODULE K"
+11.	HYPR (n.d.). "Five Facts to Know About History’s Most Destructive Cyberattack"
+12.	Cloudflare (n.d.). "How to prevent ransomware attacks"
+
